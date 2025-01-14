@@ -13,4 +13,4 @@ WORKDIR /app
 COPY --from=builder /app/worker ./
 COPY --from=builder /app/starter ./
 
-CMD ["/bin/sh", "-c", "./worker && ./starter"][1][3]
+CMD ["/bin/sh", "-c", "./worker && ./starter"]
