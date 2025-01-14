@@ -4,8 +4,10 @@ WORKDIR /app
 COPY . .
 RUN go mod tidy
 RUN CGO_ENABLED=0 GOOS=linux go build -o workers ./workers/main.go
+RUN ls -la workers
 
 FROM alpine:latest
-WORKDIR /root/
-COPY --from=builder /app/workers .
-CMD ["./workers"]
+WORKDIR /app
+COPY --from=builder /app/workers ./
+RUN ls -la workers && chmod +x workers
+CMD ["/app/workers"]

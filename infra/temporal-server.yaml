@@ -1,0 +1,154 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: temporal-config
+data:
+  POSTGRES_USER: temporal
+  POSTGRES_PASSWORD: temporal
+  POSTGRES_DB: temporal
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: temporal-postgresql
+spec:
+  selector:
+    matchLabels:
+      app: temporal-postgresql
+  template:
+    metadata:
+      labels:
+        app: temporal-postgresql
+    spec:
+      containers:
+      - name: postgresql
+        image: postgres:13
+        envFrom:
+        - configMapRef:
+            name: temporal-config
+        ports:
+        - containerPort: 5432
+        resources:
+          limits:
+            memory: "512Mi"
+            cpu: "250m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: temporal-postgresql
+spec:
+  selector:
+    app: temporal-postgresql
+  ports:
+  - port: 5432
+    targetPort: 5432
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: temporal-server
+spec:
+  selector:
+    matchLabels:
+      app: temporal-server
+  template:
+    metadata:
+      labels:
+        app: temporal-server
+    spec:
+      containers:
+      - name: temporal
+        image: temporalio/auto-setup
+        env:
+        - name: DB
+          value: "postgres12"
+        - name: DB_PORT
+          value: "5432"
+        - name: POSTGRES_USER
+          valueFrom:
+            configMapKeyRef:
+              name: temporal-config
+              key: POSTGRES_USER
+        - name: POSTGRES_PWD
+          valueFrom:
+            configMapKeyRef:
+              name: temporal-config
+              key: POSTGRES_PASSWORD
+        - name: POSTGRES_SEEDS
+          value: "temporal-postgresql"
+        ports:
+        - containerPort: 7233
+        resources:
+          limits:
+            memory: "512Mi"
+            cpu: "250m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: temporal-server
+spec:
+  selector:
+    app: temporal-server
+  ports:
+  - port: 7233
+    targetPort: 7233
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: temporal-web
+spec:
+  selector:
+    matchLabels:
+      app: temporal-web
+  template:
+    metadata:
+      labels:
+        app: temporal-web
+    spec:
+      containers:
+      - name: temporal-web
+        image: temporalio/ui
+        env:
+        - name: TEMPORAL_ADDRESS
+          value: "temporal-server:7233"
+        - name: TEMPORAL_CORS_ORIGINS
+          value: "http://localhost:3000"
+        ports:
+        - containerPort: 8080
+        resources:
+          limits:
+            memory: "256Mi"
+            cpu: "250m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: temporal-web
+spec:
+  selector:
+    app: temporal-web
+  ports:
+  - port: 8080
+    targetPort: 8080
+---
+# apiVersion: networking.k8s.io/v1
+# kind: Ingress
+# metadata:
+#   name: temporal-web-ingress
+#   labels:
+#     name: temporal-web-ingress
+# spec:
+#   rules:
+#   - host: #redacted
+#     http:
+#       paths:
+#       - pathType: Prefix
+#         path: "/"
+#         backend:
+#           service:
+#             name: temporal-web
+#             port: 
+#               number: 8080
