@@ -5,6 +5,10 @@
 
 Run a local temporal server to be able to run workflows and visualize them through Temporal.io's web UI.
 
+## Architecture
+
+![architecture](docs/images/architecture.png)
+
 ## Installation
 
 Run the docker compose command below to pull and run the needed images. (postgres, temporal server and temporal web UI)
