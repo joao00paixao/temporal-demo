@@ -43,14 +43,27 @@ jobs:
       id: meta
       uses: docker/metadata-action@v5
       with:
-        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-        tags: | 
+        images: |
+          ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-worker
+          ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-starter
+        tags: |
           type=sha,format=long
+          type=raw,value=latest
         
-    - name: Build and push
+    - name: Build and push worker
       uses: docker/build-push-action@v5
       with:
         context: ./src
+        file: ./src/Dockerfile.worker
         push: true
-        tags: ${{ steps.meta.outputs.tags }}
+        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-worker:${{ github.sha }}
+        labels: ${{ steps.meta.outputs.labels }}
+        
+    - name: Build and push starter
+      uses: docker/build-push-action@v5
+      with:
+        context: ./src
+        file: ./src/Dockerfile.starter
+        push: true
+        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-starter:${{ github.sha }}
         labels: ${{ steps.meta.outputs.labels }}

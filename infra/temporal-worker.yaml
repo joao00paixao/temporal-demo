@@ -1,21 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: temporal-worker
+spec:
+  selector:
+    matchLabels:
+      app: temporal-worker
+  template:
+    metadata:
+      labels:
+        app: temporal-worker
+    spec:
+      containers:
+      - name: worker
+        image: ghcr.io/joao00paixao/temporal-demo-worker:latest
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "200m"
+---
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: temporal-demo-worker
+  name: temporal-starter
 spec:
-  schedule: "0 */3 * * *" 
-  concurrencyPolicy: Forbid
-  successfulJobsHistoryLimit: 3
-  failedJobsHistoryLimit: 1
+  schedule: "0 */3 * * *"  # Runs every 3 hours
   jobTemplate:
     spec:
       template:
         spec:
           containers:
-          - name: temporal-demo-worker-container
-            image: ghcr.io/joao00paixao/temporal-demo:main
+          - name: starter
+            image: ghcr.io/joao00paixao/temporal-demo-starter:latest
             resources:
               limits:
                 memory: "128Mi"
                 cpu: "200m"
-          restartPolicy: Never
+          restartPolicy: OnFailure
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
