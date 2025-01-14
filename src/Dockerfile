@@ -9,5 +9,5 @@ RUN ls -la workers
 FROM alpine:latest
 WORKDIR /app
 COPY --from=builder /app/workers ./
-RUN ls -la workers && chmod +x workers
+
 CMD ["/app/workers"]
