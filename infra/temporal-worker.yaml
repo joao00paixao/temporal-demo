@@ -13,11 +13,11 @@ spec:
     spec:
       containers:
       - name: worker
-        image: ghcr.io/joao00paixao/temporal-demo-worker:latest
+        image: ghcr.io/joao00paixao/temporal-demo-worker:c269cb6977679009bd414b934ff825951536fd96
         resources:
           limits:
             memory: "128Mi"
-            cpu: "200m"
+            cpu: "100m"
 ---
 apiVersion: batch/v1
 kind: CronJob
@@ -31,11 +31,11 @@ spec:
         spec:
           containers:
           - name: starter
-            image: ghcr.io/joao00paixao/temporal-demo-starter:latest
+            image: ghcr.io/joao00paixao/temporal-demo-starter:c269cb6977679009bd414b934ff825951536fd96
             resources:
               limits:
                 memory: "128Mi"
-                cpu: "200m"
+                cpu: "100m"
           restartPolicy: OnFailure
   successfulJobsHistoryLimit: 3
   failedJobsHistoryLimit: 1
